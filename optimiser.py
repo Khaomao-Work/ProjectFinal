@@ -204,7 +204,11 @@ def solve_itinerary(
         "total_distance": round(results["total_distance"], 2),
         "total_time": round(sum(results["daily_total_time_spent"]), 2) if "daily_total_time_spent" in results else None,
         #"daily_routes": optimized_plan
-        "daily_routes": route_plan
+        "daily_routes": route_plan,
+        "raw_results": results,
+        "cleaned_places": cleaned_places,
+        "distance_matrix": distance_matrix,
+        "time_matrix": time_matrix,
     })
 
     print(itineraries)
@@ -240,8 +244,12 @@ def get_travel_matrices(places: list[dict]) -> tuple[list[list[float]], list[lis
             distance_row = []
             time_row = []
             for cell in row:
-                distance_row.append(cell.get('distance', float('inf')) / 1000)  # convert to km
-                time_row.append(cell.get('time', float('inf')) / 3600)  ## แก้เป็น hour
+                dist = cell.get('distance')
+                time_val = cell.get('time')
+                # ถ้าเป็น None (เส้นทางไม่ถึง) ให้ใช้ inf แทน
+                distance_row.append((dist if dist is not None else float('inf')) / 1000)
+                time_row.append((time_val if time_val is not None else float('inf')) / 3600)
+
             distance_matrix.append(distance_row)
             time_matrix.append(time_row)
         return distance_matrix, time_matrix
@@ -262,12 +270,12 @@ def run_optimize(data):
     all_places_name = data['all_places_name']
     H = set(data['hotel_indices'])
     A = set(data['attraction_indices'])
-    S = data['start_idx']     # ✅ เพิ่ม: จุดเริ่มต้น (index)
-    F = data['end_idx']       # ✅ เพิ่ม: จุดสิ้นสุด (index)
-    A_score = A - {S, F}      # ✅ เพิ่ม: สถานที่ที่นับคะแนน (ไม่รวมจุดเริ่ม/จบ)
+    S = data['start_idx']       # จุดเริ่มต้น (index)
+    F = data['end_idx']         # จุดสิ้นสุด (index)
+    A_score = A - {S, F}        # สถานที่ที่นับคะแนน (ไม่รวมจุดเริ่ม/จบ)
     visiting_time = data['visiting_time']
-    E = data['E']                  # เวลาเปิดรับเข้าแต่ละสถานที่
-    L = data['L']                  # เวลาปิดรับเข้าแต่ละสถานที่
+    E = data['E']
+    L = data['L']
     d = data['d']
     t = data['t']
     s = data['score']
@@ -276,188 +284,156 @@ def run_optimize(data):
     flexible = data['flexible']
     B = data['budget']
     c_visit = data['c_visit']
-    day_start = data.get('day_start', 6.0)   # เวลาเริ่มวัน (รับจาก data ได้)
-
-
+    day_start = data.get('day_start', 6.0)
     n = len(all_places_name)
     N = set(range(n))
     K = set(range(day))
+    first_day = 0          # ✅ เพิ่ม (ใช้ในสมการ (5)(6)(7)(8) แต่หายไป)
+    last_day = day - 1     # ✅ เพิ่ม (ใช้ในสมการ (3)(4)(6)(8) แต่หายไป)
+    v = visiting_time      # ✅ เพิ่ม (สมการ (11) ใช้ v[j] แต่ประกาศชื่อ visiting_time)
     BIG_M = 100
 
-    # --- ต้นทุนเชื้อเพลิง (เหมือนเดิม) ---
+    # (22) ค่าน้ำมัน c_fuel_ij = (d_ij / FC) * Pfuel
     c_travel = [[(d[i][j]/FC)*Pfuel if (i != j and d[i][j] != float("inf")) else 0.0
                  for j in range(n)] for i in range(n)]
 
+    
 
     model = Model()
 
-    #Decision variable
-    x = [[[model.add_var(var_type=BINARY) for k in K] for j in N] for i in N]         #มีเส้นทางจากสานที่ i ไป j ในวันที่ k มีค่า = 1, ไม่มีเส้นทาง = 0
-    y = [[model.add_var(var_type=BINARY) for k in K] for i in N]                      #สถานที่ i ถูกเยี่ยมชมในวันที่ k มีค่า = 1, ไม่เยี่ยมชม = 0
-    u = [[model.add_var(var_type=INTEGER, lb=0, ub=n-1) for k in K] for i in N]       #Subtour - MTZ                                   #ชั่วโมงที่เกิน T_max
-    Z = [model.add_var(var_type=CONTINUOUS) for k in K]                                      #ผลต่างของเวลารวมต่อวัน (T_k) กับค่าเฉลี่ยเวลารวมต่อวัน (T_avg)
-    # เพิ่ม: a[i][k] = เวลาไปถึงสถานที่ i ในวัน k
+    # ==================== Decision Variables ====================
+    x = [[[model.add_var(var_type=BINARY) for k in K] for j in N] for i in N]  # (16)
+    y = [[model.add_var(var_type=BINARY) for k in K] for i in N]               # (16)
+    u = [[model.add_var(var_type=INTEGER, lb=0, ub=n-1) for k in K] for i in N]
     a = [[model.add_var(var_type=CONTINUOUS, lb=0) for _ in K] for _ in N]
-    #Parameter
-    T = [model.add_var(lb=0) for k in K]                                              # T_k คือ เวลารวมต่อวัน
-    T_avg = model.add_var(lb=0)                                                       # T_avg คือ ค่าเฉลี่ยเวลาในเเต่ละวัน
+    
+    # ถ้าเส้นทางเป็น inf ให้ใช้เวลา/ระยะทางมากๆ แทน (โมเดลจะหลีกเลี่ยงเอง)
+    for i in N:
+        for j in N:
+            if i != j and t[i][j] == float('inf'):
+                t[i][j] = 100.0   # 100 ชั่วโมง (มากพอที่โมเดลจะไม่เลือก)
+                d[i][j] = 5000.0  # 5000 กม.
 
-
-    # 1. objevtion function : หาค่าความพอใจมากที่สุด
-
-    model.objective = maximize(xsum(s[i] * y[i][k] for i in A_score for k in K))
-
-    # -------------------------
-    #Constraints
-    # -------------------------
-
-    # (2) เข้าสถานที่ j เพียง 1 ครั้ง ตลอดทั้งทริป
-    for j in A:
-        model += xsum(x[i][j][k] for i in N if i != j for k in K) <= 1
-
-    # (3) ออกจากสถานที่ j เพียง 1 ครั้ง ตลอดทั้งทริป
+# ==================== (1) Objective ====================
+    # โค้ดเดิม: 
+    # model.objective = maximize(xsum(s[i] * y[i][k] for i in A_score for k in K))
+    
+    # โค้ดที่แก้ไข: เน้นคะแนนเป็นหลัก (คูณ 1000) และลบด้วยระยะทางเดินทางเพื่อบังคับให้เลือกทางที่สั้นที่สุด
+    W_score = 1.0  
+    W_distance =0.1
+    model.objective = maximize(
+        (W_score * xsum(s[i] * y[i][k] for i in A_score for k in K)) - 
+        (W_distance * xsum(d[i][j] * x[i][j][k] for k in K for i in N for j in N if i != j))
+    )
+    # ==================== Constraints ====================
+    # (2) แต่ละสถานที่เที่ยวถูกเยี่ยมได้ไม่เกิน 1 ครั้งตลอดทริป
     for i in A:
-        model += xsum(x[i][j][k] for j in N if j != i for k in K) <= 1
+        model += xsum(y[i][k] for k in K) <= 1
 
-##################ต้องแก้################################################################################################3
-
-    # (3) วันแรกออกจากจุดเริ่มต้น S แน่นอน
-    model += xsum(x[S][j][0] for j in N if j != S) == 1
-
-    # (4) วันสุดท้ายจบที่จุดสิ้นสุด F แน่นอน
-    model += xsum(x[i][F][day-1] for i in N if i != F) == 1
-
-    # (3a) ถ้า S เป็นสถานที่เที่ยว → บังคับเยี่ยม, ถึงตอนเริ่มวัน, ลำดับ 0
-    if S in A:
-        model += y[S][0] == 1
-        model += a[S][0] == day_start
-        model += u[S][0] == 0
-
-    # (4a) ถ้า F เป็นสถานที่เที่ยว → บังคับเยี่ยม
-    if F in A:
-        model += y[F][day-1] == 1
-
-    # (5) วันที่ 2..K ออกจากจุดพัก 1 แห่ง
-    for k in K:
-        if k != 0:  # ไม่รวมวันแรก
-            model += xsum(x[q][j][k] for q in H for j in A if j != q) == 1
-    # (6) วันที่ 1..K-1 กลับมาที่จุดพัก 1 แห่ง
-    for k in K:
-        if k != day-1:  # ไม่รวมวันสุดท้าย
-            model += xsum(x[i][q][k] for q in H for i in A if i != q) == 1
-
-    # (5b) ถ้าเริ่มที่สถานที่เที่ยว → ห้ามออกจากจุดพักในวันแรก
-    if S in A:
-        model += xsum(x[q][j][0] for q in H for j in A) == 0
-
-    # (6b) ถ้าจบที่สถานที่เที่ยว → ห้ามกลับจุดพักในวันสุดท้าย
-    if F in A:
-        model += xsum(x[i][q][day-1] for q in H for i in A) == 0
-
-
-    #  (7)(8) Flow conservation ยกเว้นจุดเริ่ม(วัน1เข้า) และจุดจบ(วันสุดท้ายออก)
+    # (3) ออกจาก i = y_ik  (ยกเว้น f ในวันสุดท้าย)
     for k in K:
         for i in A:
-            # ออกจากสถานที่ i → ยกเว้น F วันสุดท้าย (จบที่นี่ ไม่ต้องออก)
-            if not (i == F and k == day-1):
+            if not (i == F and k == last_day):
                 model += xsum(x[i][j][k] for j in N if j != i) == y[i][k]
-            # เข้าสถานที่ i → ยกเว้น S วันแรก (เริ่มที่นี่ ไม่ต้องเข้า)
-            if not (i == S and k == 0):
-                model += xsum(x[j][i][k] for j in N if j != i) == y[i][k]
-    ## (11) ขอบเขต u → ยกเว้น S วันแรก (ตั้ง u=0 แล้วจาก 3a)
-    for i in A:
-        for k in K:
-            if not (i == S and k == 0):
-                model += u[i][k] >= y[i][k]
-                model += u[i][k] <= (n-1) * y[i][k]
-###################################################################################################################################
-    # (8) เริ่มต้นที่โรงแรมเป็นลำดับแรก #เเก้#
-    #u[0][k] = model.add_var(lb=0, ub=0)
+
+    # (4) เข้าสู่ i = y_ik  (ยกเว้น s ในวันแรก)
     for k in K:
-      for q in H:
-        model += u[q][k] == 0
+        for i in A:
+            if not (i == S and k == first_day):
+                model += xsum(x[j][i][k] for j in N if j != i) == y[i][k]
 
-    
-    # ==================================================
-    # ✅ เพิ่มใหม่: ข้อจำกัดเวลาเปิด-ปิด (ใช้ a ตัวเดียว)
-    # ==================================================
+    # (5) วันแรกออกจากจุดเริ่มต้น s 1 เส้นทาง
+    model += xsum(x[S][j][first_day] for j in N if j != S) == 1
+    if S in A:   # (5.1) s เป็นสถานที่เที่ยว: ต้องแวะ, ถึงตอนเริ่มวัน, ลำดับ 0
+        model += y[S][first_day] == 1
+        model += a[S][first_day] == day_start
+        model += u[S][first_day] == 0
 
-    # (10) ถ้าไปสถานที่ i → ต้องไม่ถึงก่อนเวลาเปิด E[i]
-    #      a[i][k] >= E[i] - M*(1 - y[i][k])
+    # (6) วันสุดท้ายเข้าสู่จุดสิ้นสุด f 1 เส้นทาง
+    model += xsum(x[i][F][last_day] for i in N if i != F) == 1
+    if F in A:   # (6.1) f เป็นสถานที่เที่ยว: ต้องแวะ
+        model += y[F][last_day] == 1
+
+    # (7) วันที่ 2..K เริ่มด้วยการออกจากที่พัก 1 แห่ง
+    for k in K:
+        if k != first_day:
+            model += xsum(x[h][j][k] for h in H for j in N if j != h) == 1
+    if S in H:   # (7.1) วันแรกเริ่มที่ที่พัก
+        model += xsum(x[h][j][first_day] for h in H for j in N if j != h) == 1
+    if S in A:   # (7.2) วันแรกเริ่มที่สถานที่เที่ยว: ห้ามออกจากที่พัก
+        model += xsum(x[h][j][first_day] for h in H for j in N if j != h) == 0
+
+    # (8) วันที่ 1..K-1 กลับมาที่ที่พัก 1 แห่ง
+    for k in K:
+        if k != last_day:
+            model += xsum(x[i][h][k] for h in H for i in N if i != h) == 1
+    if F in H:   # (8.1) วันสุดท้ายจบที่ที่พัก
+        model += xsum(x[i][h][last_day] for h in H for i in N if i != h) == 1
+    if F in A:   # (8.2) วันสุดท้ายจบที่สถานที่เที่ยว: ห้ามกลับที่พัก
+        model += xsum(x[i][h][last_day] for h in H for i in N if i != h) == 0
+
+    # (9) MTZ ป้องกัน subtour
+    for k in K:
+        for i in A:
+            for j in A:
+                if i != j:
+                    model += u[i][k] - u[j][k] + n * x[i][j][k] <= n - 1
+
+    # (10) ขอบเขตของ u : y <= u <= (n-1)*y  (ยกเว้น (s, วันแรก))
     for i in A:
         for k in K:
+            if not (i == S and k == first_day):
+                model += u[i][k] >= y[i][k]
+                model += u[i][k] <= (n - 1) * y[i][k]
+
+    # (11) เวลารวมต่อวันไม่เกิน T_max (บังคับเมื่อผู้ใช้ไม่ยอมให้ยืดหยุ่นเวลา)
+    if not flexible:
+        for k in K:
+            model += (xsum(t[i][j] * x[i][j][k] for i in N for j in N if i != j)
+                      + xsum(v[j] * y[j][k] for j in N)) <= T_max
+
+    # (12) a_ik >= E_i - M(1 - y_ik)
+    for k in K:
+        for i in A:
             model += a[i][k] >= E[i] - BIG_M * (1 - y[i][k])
 
-    # (11) ถ้าไปสถานที่ i → ถึง+พัก ต้องไม่เกินเวลาปิด L[i]
-    #      a[i][k] + visiting_time[i] <= L[i] + M*(1 - y[i][k])
-    for i in A:
-        for k in K:
-            model += a[i][k] + visiting_time[i] * y[i][k] <= L[i] + BIG_M * (1 - y[i][k])
-
-    # (12) ถ้าเดินทาง i→j → ถึง j ไม่เร็วกว่า (ถึง i + พักที่ i + เวลาเดินทาง)
-    #      a[j][k] >= a[i][k] + visiting_time[i] + t[i][j] - M*(1 - x[i][j][k])
+    # (13) a_ik + v_i <= L_i + M(1 - y_ik)
     for k in K:
         for i in A:
-            for j in N:
-                if i != j:
-                    model += a[j][k] >= a[i][k] + visiting_time[i] + t[i][j] - BIG_M * (1 - x[i][j][k])
+            model += a[i][k] + v[i] <= L[i] + BIG_M * (1 - y[i][k])
 
-    # (13) ถ้าออกจากโรงแรม q ไปสถานที่ j → ถึง j ไม่เร็วกว่า day_start + เวลาเดินทาง
-    #      a[j][k] >= day_start + t[q][j] - M*(1 - x[q][j][k])
+    # (14) เวลาสะสม: a_jk >= a_ik + v_i + t_ij - M(1 - x_ijk)
     for k in K:
-        for q in H:
+        for i in A:
             for j in A:
-                model += a[j][k] >= day_start + t[q][j] - BIG_M * (1 - x[q][j][k])
+                if i != j:
+                    model += a[j][k] >= a[i][k] + v[i] + t[i][j] - BIG_M * (1 - x[i][j][k])
 
-
-    # (14 เวลาที่ใช้ในการท่องเที่ยวแต่ละวันไม่เกินเวลาที่ผู้ใช้กำหนด จำนวนชั่วโมงที่เที่ยวได้มากที่สุด
+    # (15) สถานที่แรกของวัน: a_jk >= day_start + t_ij - M(1 - x_ijk), i in H ∪ {s}
     for k in K:
-        travel_term = xsum(t[i][j]*x[i][j][k] for i in N for j in N if i != j)
-        visit_term = xsum(visiting_time[j]*xsum(x[i][j][k] for i in N if i != j) for j in N)   #ไม่เอา j!=0
+        for i in (H | {S}):
+            for j in A:
+                if i != j:
+                    model += a[j][k] >= day_start + t[i][j] - BIG_M * (1 - x[i][j][k])
 
-        if flexible is True:
-            model += travel_term + visit_term <= T_max 
+    # (16), (17) x, y เป็นไบนารี -> กำหนดตอนสร้างตัวแปรแล้ว
 
-
-    # (11) คำนวณเวลาที่ใช้ในการท่องเที่ยวในแต่ละวัน
+    # (18) ที่พักต่อเนื่องข้ามวัน: ออกจาก q วัน k = เข้า q วัน k-1
     for k in K:
-        # travel_time_k: เวลาเดินทางรวมในวัน k
-        travel_time_k = xsum(t[i][j] * x[i][j][k]
-                            for i in N for j in N if i != j)
-        # visit_time_k: เวลาเยี่ยมชมรวมในวัน k  (ใช้ y[j][k] เพื่อบอกว่าไปเยือน j ในวัน _k หรือไม่)
-        visit_time_k = xsum(visiting_time[j] * y[j][k] for j in N)
-        # นิยาม T[k]
-        model += T[k] == travel_time_k + visit_time_k
+        if k >= 1:
+            for q in H:
+                model += xsum(x[q][j][k] for j in A) == xsum(x[i][q][k - 1] for i in A)
 
-    # (15เวลารวมเฉลี่ยในแต่ละวันที่ใช้ในการท่องเที่ยว
-    model += T_avg == xsum(T[k] for k in K) / len(K)
-
-    # (13) ความแตกต่างของเวลา
-    for k in K:
-        model += Z[k] >= T[k] - T_avg
-        model += Z[k] >= T_avg - T[k]
-
-    # (14), (15) คือขอบเขต x,y
-###################################################################################################################################
-    # (16) กำหนดให้จุดเริ่มต้นในวันที่ k กับจุดสิ้นสุดในวันที่ k - 1 เป็นแรงแรม q (โรงแรมเดียวกัน)
-    for k in range(1, len(K)):
-        for q in H:
-              model += xsum(x[q][j][k] for j in A) == xsum(x[i][q][k-1] for i in A)
-###################################################################################################################################
-
-    # (18) กำหนดให้ไม่มีการเดินทางระหว่างโรงแรมกับโรงแรม
+    # (20) ห้ามเดินทางที่พัก -> ที่พักโดยตรง
     for k in K:
         for q in H:
             for r in H:
                 if q != r:
-                    model.add_constr(x[q][r][k] == 0)
+                    model += x[q][r][k] == 0
 
-    #(22)
-    model += (
-    xsum(c_travel[i][j] * x[i][j][k] for i in N for j in N if i != j for k in K)
-    + xsum(c_visit[i] * y[i][k] for i in A for k in K)
-    <= B
-)
+    # (21) งบประมาณ: ค่าน้ำมัน + ค่าเข้าชม <= B
+    model += (xsum(c_travel[i][j] * x[i][j][k] for k in K for i in N for j in N if i != j)
+              + xsum(c_visit[i] * y[i][k] for i in A for k in K)) <= B
 
     # -------------------------
     #Optimizer
@@ -567,6 +543,7 @@ def run_optimize(data):
 
     return results
 
+"""
 # --- Sample input for testing solve_itinerary() ---
 
 potential_hotels = [
@@ -607,3 +584,4 @@ itineraries = solve_itinerary(
 print("\n=== TEST RESULT ===")
 for itinerary in itineraries:
     print(itinerary)
+"""

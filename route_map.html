@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_6e78b83ba401e2807191ee52eade7881 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    <div style="position:fixed;bottom:30px;left:30px;z-index:1000;background:white;padding:10px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.2);font-size:13px;">
+    <b>สีเส้นทางตามวัน</b><br><span style="color:#e67e22;font-weight:bold;">━━</span> วันที่ 1<br><span style="color:#2c3e50;font-weight:bold;">━━</span> วันที่ 2<br><span style="color:#27ae60;font-weight:bold;">━━</span> วันที่ 3<br><span style="color:red;">●</span> สถานที่เที่ยว<br><span style="color:green;">●</span> โรงแรม/จุดพัก</div>
+    
+            <div class="folium-map" id="map_6e78b83ba401e2807191ee52eade7881" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_6e78b83ba401e2807191ee52eade7881 = L.map(
+                "map_6e78b83ba401e2807191ee52eade7881",
+                {
+                    center: [13.697366666666667, 100.14365],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 11,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_c80169f57a14113408682401613de779 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_c80169f57a14113408682401613de779.addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var poly_line_5e1e5b8d84811c8b7fff0eb74265a782 = L.polyline(
+                [[13.7563, 100.5018], [13.7437, 100.4888]],
+                {"bubblingMouseEvents": true, "color": "#e67e22", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#e67e22", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_5e1e5b8d84811c8b7fff0eb74265a782.bindTooltip(
+                `<div>
+                     วันที่ 1: โรงแรมในกรุงเทพ → วัดอรุณราชวราราม (กรุงเทพ) (0.1 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_66cb728ebaf74932dcf45b83158f491b = L.polyline(
+                [[13.7437, 100.4888], [13.7048, 100.503]],
+                {"bubblingMouseEvents": true, "color": "#e67e22", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#e67e22", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_66cb728ebaf74932dcf45b83158f491b.bindTooltip(
+                `<div>
+                     วันที่ 1: วัดอรุณราชวราราม (กรุงเทพ) → เอเชียทีค (กรุงเทพ) (0.2 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_c693d3fe5a51968f8718ab7fdcc22703 = L.polyline(
+                [[13.7048, 100.503], [13.7563, 100.5018]],
+                {"bubblingMouseEvents": true, "color": "#e67e22", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#e67e22", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_c693d3fe5a51968f8718ab7fdcc22703.bindTooltip(
+                `<div>
+                     วันที่ 1: เอเชียทีค (กรุงเทพ) → โรงแรมในกรุงเทพ (0.2 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_460d5758c8ebb2266941cfb819e3d174 = L.polyline(
+                [[13.7563, 100.5018], [13.7442, 100.4947]],
+                {"bubblingMouseEvents": true, "color": "#2c3e50", "dashArray": "4", "dashOffset": null, "fill": false, "fillColor": "#2c3e50", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_460d5758c8ebb2266941cfb819e3d174.bindTooltip(
+                `<div>
+                     วันที่ 2: โรงแรมในกรุงเทพ → มิวเซียมสยาม (กรุงเทพ) (0.0 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_c566ac521ea6cf5693fff4cf3985cf8f = L.polyline(
+                [[13.7442, 100.4947], [13.79, 100.25]],
+                {"bubblingMouseEvents": true, "color": "#2c3e50", "dashArray": "4", "dashOffset": null, "fill": false, "fillColor": "#2c3e50", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_c566ac521ea6cf5693fff4cf3985cf8f.bindTooltip(
+                `<div>
+                     วันที่ 2: มิวเซียมสยาม (กรุงเทพ) → คาเฟ่ริมน้ำนครชัยศรี (นครปฐม) (0.4 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_97414c0cb63f1a330efa90cb4bf3256d = L.polyline(
+                [[13.79, 100.25], [13.8196, 100.0607]],
+                {"bubblingMouseEvents": true, "color": "#2c3e50", "dashArray": "4", "dashOffset": null, "fill": false, "fillColor": "#2c3e50", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_97414c0cb63f1a330efa90cb4bf3256d.bindTooltip(
+                `<div>
+                     วันที่ 2: คาเฟ่ริมน้ำนครชัยศรี (นครปฐม) → องค์พระปฐมเจดีย์ (นครปฐม) (0.4 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_32a7a5f7fe484c4527c739da4e655cbb = L.polyline(
+                [[13.8196, 100.0607], [13.8199, 100.062]],
+                {"bubblingMouseEvents": true, "color": "#2c3e50", "dashArray": "4", "dashOffset": null, "fill": false, "fillColor": "#2c3e50", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_32a7a5f7fe484c4527c739da4e655cbb.bindTooltip(
+                `<div>
+                     วันที่ 2: องค์พระปฐมเจดีย์ (นครปฐม) → โรงแรมในนครปฐม (0.0 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_24bcf6cc2fc2cb1b39c7ee2e50a64b24 = L.polyline(
+                [[13.8199, 100.062], [13.8179, 100.0415]],
+                {"bubblingMouseEvents": true, "color": "#27ae60", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#27ae60", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_24bcf6cc2fc2cb1b39c7ee2e50a64b24.bindTooltip(
+                `<div>
+                     วันที่ 3: โรงแรมในนครปฐม → พระราชวังสนามจันทร์ (นครปฐม) (0.1 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_dfbcc5468da181be4e469b92b0e8819e = L.polyline(
+                [[13.8179, 100.0415], [13.5199, 99.9566]],
+                {"bubblingMouseEvents": true, "color": "#27ae60", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#27ae60", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_dfbcc5468da181be4e469b92b0e8819e.bindTooltip(
+                `<div>
+                     วันที่ 3: พระราชวังสนามจันทร์ (นครปฐม) → ตลาดน้ำดำเนินสะดวก (ราชบุรี) (0.8 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_f217ec8d0ec53c4cb2ff65f651c77372 = L.polyline(
+                [[13.5199, 99.9566], [13.5905, 99.7346]],
+                {"bubblingMouseEvents": true, "color": "#27ae60", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#27ae60", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_f217ec8d0ec53c4cb2ff65f651c77372.bindTooltip(
+                `<div>
+                     วันที่ 3: ตลาดน้ำดำเนินสะดวก (ราชบุรี) → อุทยานหินเขางู (ราชบุรี) (0.7 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_7535ad11081f4532265962c4a01fdcbe = L.polyline(
+                [[13.5905, 99.7346], [13.5333, 99.8167]],
+                {"bubblingMouseEvents": true, "color": "#27ae60", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#27ae60", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_7535ad11081f4532265962c4a01fdcbe.bindTooltip(
+                `<div>
+                     วันที่ 3: อุทยานหินเขางู (ราชบุรี) → เถ้าฮงไถ่ (ราชบุรี) (0.3 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_4fe53002f8021b3b9c73ac4292dc3f04 = L.polyline(
+                [[13.5333, 99.8167], [13.5283, 99.8134]],
+                {"bubblingMouseEvents": true, "color": "#27ae60", "dashArray": "8", "dashOffset": null, "fill": false, "fillColor": "#27ae60", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            poly_line_4fe53002f8021b3b9c73ac4292dc3f04.bindTooltip(
+                `<div>
+                     วันที่ 3: เถ้าฮงไถ่ (ราชบุรี) → รีสอร์ทในราชบุรี (0.0 ชม.)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var circle_marker_d82da6ef255ee7547d23bff4680fbfe9 = L.circleMarker(
+                [13.7563, 100.5018],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_7fd2c038bb2177bb09887971d91507f9 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_5cb56d7e56a60842344001c5e1cb9ac7 = $(`<div id="html_5cb56d7e56a60842344001c5e1cb9ac7" style="width: 100.0%; height: 100.0%;"><b>1. โรงแรมในกรุงเทพ</b><br>โรงแรม/จุดพัก<br>คะแนน: 1 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 0 ชม. | เปิด: 0.0-24.0 น.</div>`)[0];
+                popup_7fd2c038bb2177bb09887971d91507f9.setContent(html_5cb56d7e56a60842344001c5e1cb9ac7);
+            
+        
+
+        circle_marker_d82da6ef255ee7547d23bff4680fbfe9.bindPopup(popup_7fd2c038bb2177bb09887971d91507f9)
+        ;
+
+        
+    
+    
+            circle_marker_d82da6ef255ee7547d23bff4680fbfe9.bindTooltip(
+                `<div>
+                     1. โรงแรมในกรุงเทพ
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_7c5c65dbdf4757f10eddb5aaf990d855 = L.marker(
+                [13.7563, 100.5018],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_c16f4c071688ca9b1420c2900857f4c4 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e1\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_7c5c65dbdf4757f10eddb5aaf990d855.setIcon(div_icon_c16f4c071688ca9b1420c2900857f4c4);
+            
+    
+            var circle_marker_d69a9d61385365e50b00d59a298dca22 = L.circleMarker(
+                [13.8199, 100.062],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_9d98ca679480da0e97a002a5042d277a = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_20b45a32ff28baaf51e6440379709c5e = $(`<div id="html_20b45a32ff28baaf51e6440379709c5e" style="width: 100.0%; height: 100.0%;"><b>2. โรงแรมในนครปฐม</b><br>โรงแรม/จุดพัก<br>คะแนน: 1 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 0 ชม. | เปิด: 0.0-24.0 น.</div>`)[0];
+                popup_9d98ca679480da0e97a002a5042d277a.setContent(html_20b45a32ff28baaf51e6440379709c5e);
+            
+        
+
+        circle_marker_d69a9d61385365e50b00d59a298dca22.bindPopup(popup_9d98ca679480da0e97a002a5042d277a)
+        ;
+
+        
+    
+    
+            circle_marker_d69a9d61385365e50b00d59a298dca22.bindTooltip(
+                `<div>
+                     2. โรงแรมในนครปฐม
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_240d8e7526d9867ce89228cd3deecbdd = L.marker(
+                [13.8199, 100.062],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_7c24d38b99bbe4c129197f8721b43b48 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e2\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_240d8e7526d9867ce89228cd3deecbdd.setIcon(div_icon_7c24d38b99bbe4c129197f8721b43b48);
+            
+    
+            var circle_marker_f6896032b2c220927fdddb6e9de510bb = L.circleMarker(
+                [13.5283, 99.8134],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_cb3dbfef46899fca5825090181ddfe16 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_b96f4b456207b6d8a94c4a5543133451 = $(`<div id="html_b96f4b456207b6d8a94c4a5543133451" style="width: 100.0%; height: 100.0%;"><b>3. รีสอร์ทในราชบุรี</b><br>โรงแรม/จุดพัก<br>คะแนน: 1 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 0 ชม. | เปิด: 0.0-24.0 น.</div>`)[0];
+                popup_cb3dbfef46899fca5825090181ddfe16.setContent(html_b96f4b456207b6d8a94c4a5543133451);
+            
+        
+
+        circle_marker_f6896032b2c220927fdddb6e9de510bb.bindPopup(popup_cb3dbfef46899fca5825090181ddfe16)
+        ;
+
+        
+    
+    
+            circle_marker_f6896032b2c220927fdddb6e9de510bb.bindTooltip(
+                `<div>
+                     3. รีสอร์ทในราชบุรี
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_9aa8123d4110f173b7eb901bf14ca4b0 = L.marker(
+                [13.5283, 99.8134],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_e9c784f4047efe14c63c49cd613b548e = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e3\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_9aa8123d4110f173b7eb901bf14ca4b0.setIcon(div_icon_e9c784f4047efe14c63c49cd613b548e);
+            
+    
+            var circle_marker_ee90860824aae120dfbdee583ff1ae53 = L.circleMarker(
+                [13.7437, 100.4888],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_bb683a6fabf5a7c01dff316b97a6fe70 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_87c55b3f0327c763ed9c21541aa82b5c = $(`<div id="html_87c55b3f0327c763ed9c21541aa82b5c" style="width: 100.0%; height: 100.0%;"><b>4. วัดอรุณราชวราราม (กรุงเทพ)</b><br>สถานที่เที่ยว<br>คะแนน: 9 | ค่าใช้จ่าย: 100 บาท<br>เวลาเยี่ยม: 1.5 ชม. | เปิด: 8.0-18.0 น.</div>`)[0];
+                popup_bb683a6fabf5a7c01dff316b97a6fe70.setContent(html_87c55b3f0327c763ed9c21541aa82b5c);
+            
+        
+
+        circle_marker_ee90860824aae120dfbdee583ff1ae53.bindPopup(popup_bb683a6fabf5a7c01dff316b97a6fe70)
+        ;
+
+        
+    
+    
+            circle_marker_ee90860824aae120dfbdee583ff1ae53.bindTooltip(
+                `<div>
+                     4. วัดอรุณราชวราราม (กรุงเทพ)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_e3b8b44073f937e57e31c0c927fb6c46 = L.marker(
+                [13.7437, 100.4888],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_5e69a8f219d6e1a3bd7c8b2a400ce16f = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e4\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_e3b8b44073f937e57e31c0c927fb6c46.setIcon(div_icon_5e69a8f219d6e1a3bd7c8b2a400ce16f);
+            
+    
+            var circle_marker_d8215c32e42409393d8c95f99d5e172d = L.circleMarker(
+                [13.7048, 100.503],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_5c22578a3ebc2bfa5c2a7a93e5fcbd82 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_afdc041c1a8fb7b9649af4ce6880ad90 = $(`<div id="html_afdc041c1a8fb7b9649af4ce6880ad90" style="width: 100.0%; height: 100.0%;"><b>5. เอเชียทีค (กรุงเทพ)</b><br>สถานที่เที่ยว<br>คะแนน: 8 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 2.0 ชม. | เปิด: 16.0-22.0 น.</div>`)[0];
+                popup_5c22578a3ebc2bfa5c2a7a93e5fcbd82.setContent(html_afdc041c1a8fb7b9649af4ce6880ad90);
+            
+        
+
+        circle_marker_d8215c32e42409393d8c95f99d5e172d.bindPopup(popup_5c22578a3ebc2bfa5c2a7a93e5fcbd82)
+        ;
+
+        
+    
+    
+            circle_marker_d8215c32e42409393d8c95f99d5e172d.bindTooltip(
+                `<div>
+                     5. เอเชียทีค (กรุงเทพ)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_3f34ffe0b3aae7826504770d37229945 = L.marker(
+                [13.7048, 100.503],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_4ac121b3bdd1b5fea8991c377fb73c08 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e5\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_3f34ffe0b3aae7826504770d37229945.setIcon(div_icon_4ac121b3bdd1b5fea8991c377fb73c08);
+            
+    
+            var circle_marker_d638c1ec68dfeaaf71e53cf97b6947e0 = L.circleMarker(
+                [13.7442, 100.4947],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_ea90eff825a73c9a07ab70c9e5e2ae97 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_fb7e076eedcf42686d9f1ee33c0cd195 = $(`<div id="html_fb7e076eedcf42686d9f1ee33c0cd195" style="width: 100.0%; height: 100.0%;"><b>6. มิวเซียมสยาม (กรุงเทพ)</b><br>สถานที่เที่ยว<br>คะแนน: 8 | ค่าใช้จ่าย: 100 บาท<br>เวลาเยี่ยม: 1.5 ชม. | เปิด: 10.0-18.0 น.</div>`)[0];
+                popup_ea90eff825a73c9a07ab70c9e5e2ae97.setContent(html_fb7e076eedcf42686d9f1ee33c0cd195);
+            
+        
+
+        circle_marker_d638c1ec68dfeaaf71e53cf97b6947e0.bindPopup(popup_ea90eff825a73c9a07ab70c9e5e2ae97)
+        ;
+
+        
+    
+    
+            circle_marker_d638c1ec68dfeaaf71e53cf97b6947e0.bindTooltip(
+                `<div>
+                     6. มิวเซียมสยาม (กรุงเทพ)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_da063586ebeca87010f490814edea50e = L.marker(
+                [13.7442, 100.4947],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_07703128bc6a66702d0dfb76ae2a26a6 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e6\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_da063586ebeca87010f490814edea50e.setIcon(div_icon_07703128bc6a66702d0dfb76ae2a26a6);
+            
+    
+            var circle_marker_83a2813b895e23da34b61d43e6971510 = L.circleMarker(
+                [13.8196, 100.0607],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_72570c5b45babdd176210b61bd5e15aa = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_0e623c251a7f63d4ed269b152e63c294 = $(`<div id="html_0e623c251a7f63d4ed269b152e63c294" style="width: 100.0%; height: 100.0%;"><b>7. องค์พระปฐมเจดีย์ (นครปฐม)</b><br>สถานที่เที่ยว<br>คะแนน: 10 | ค่าใช้จ่าย: 20 บาท<br>เวลาเยี่ยม: 1.0 ชม. | เปิด: 8.0-18.0 น.</div>`)[0];
+                popup_72570c5b45babdd176210b61bd5e15aa.setContent(html_0e623c251a7f63d4ed269b152e63c294);
+            
+        
+
+        circle_marker_83a2813b895e23da34b61d43e6971510.bindPopup(popup_72570c5b45babdd176210b61bd5e15aa)
+        ;
+
+        
+    
+    
+            circle_marker_83a2813b895e23da34b61d43e6971510.bindTooltip(
+                `<div>
+                     7. องค์พระปฐมเจดีย์ (นครปฐม)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_262ace3c3bcca744f25373fdeaa920af = L.marker(
+                [13.8196, 100.0607],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_601349d8138dbfb54cf38c5471c055a9 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e7\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_262ace3c3bcca744f25373fdeaa920af.setIcon(div_icon_601349d8138dbfb54cf38c5471c055a9);
+            
+    
+            var circle_marker_99f6c92bd9689b8b3d701992ce683f31 = L.circleMarker(
+                [13.8179, 100.0415],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_3f8b7b16fe357783314cb1c729f15f78 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_1832cfb90129b448d91f094a8aadc0a3 = $(`<div id="html_1832cfb90129b448d91f094a8aadc0a3" style="width: 100.0%; height: 100.0%;"><b>8. พระราชวังสนามจันทร์ (นครปฐม)</b><br>สถานที่เที่ยว<br>คะแนน: 8 | ค่าใช้จ่าย: 50 บาท<br>เวลาเยี่ยม: 2.0 ชม. | เปิด: 8.0-16.0 น.</div>`)[0];
+                popup_3f8b7b16fe357783314cb1c729f15f78.setContent(html_1832cfb90129b448d91f094a8aadc0a3);
+            
+        
+
+        circle_marker_99f6c92bd9689b8b3d701992ce683f31.bindPopup(popup_3f8b7b16fe357783314cb1c729f15f78)
+        ;
+
+        
+    
+    
+            circle_marker_99f6c92bd9689b8b3d701992ce683f31.bindTooltip(
+                `<div>
+                     8. พระราชวังสนามจันทร์ (นครปฐม)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_fe3f832ae305a9d5ca37b5895a70e212 = L.marker(
+                [13.8179, 100.0415],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_e83e04660432879fd9b954a89bc7c23f = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e8\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_fe3f832ae305a9d5ca37b5895a70e212.setIcon(div_icon_e83e04660432879fd9b954a89bc7c23f);
+            
+    
+            var circle_marker_0d725f520ca9ba0a0358a17a7ff150bd = L.circleMarker(
+                [13.79, 100.25],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_28b0bb372b21e632ce57e2e785f0c772 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_91238c6e5f7fd3844f8ce7f5fe86436c = $(`<div id="html_91238c6e5f7fd3844f8ce7f5fe86436c" style="width: 100.0%; height: 100.0%;"><b>9. คาเฟ่ริมน้ำนครชัยศรี (นครปฐม)</b><br>สถานที่เที่ยว<br>คะแนน: 7 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 1.0 ชม. | เปิด: 9.0-18.0 น.</div>`)[0];
+                popup_28b0bb372b21e632ce57e2e785f0c772.setContent(html_91238c6e5f7fd3844f8ce7f5fe86436c);
+            
+        
+
+        circle_marker_0d725f520ca9ba0a0358a17a7ff150bd.bindPopup(popup_28b0bb372b21e632ce57e2e785f0c772)
+        ;
+
+        
+    
+    
+            circle_marker_0d725f520ca9ba0a0358a17a7ff150bd.bindTooltip(
+                `<div>
+                     9. คาเฟ่ริมน้ำนครชัยศรี (นครปฐม)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_8431b4bb5a9fad3bd345a1f2d4a27c01 = L.marker(
+                [13.79, 100.25],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_8fc5ffceb72a46ed771a6b1a549e854e = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e9\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_8431b4bb5a9fad3bd345a1f2d4a27c01.setIcon(div_icon_8fc5ffceb72a46ed771a6b1a549e854e);
+            
+    
+            var circle_marker_6454089a427f0ddc5d524caff354cffa = L.circleMarker(
+                [13.5199, 99.9566],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_1581a4cfc3892ad8d5c9889d76c735dd = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_47f93904b1b027d26c61271563bf32d9 = $(`<div id="html_47f93904b1b027d26c61271563bf32d9" style="width: 100.0%; height: 100.0%;"><b>10. ตลาดน้ำดำเนินสะดวก (ราชบุรี)</b><br>สถานที่เที่ยว<br>คะแนน: 9 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 2.0 ชม. | เปิด: 8.0-14.0 น.</div>`)[0];
+                popup_1581a4cfc3892ad8d5c9889d76c735dd.setContent(html_47f93904b1b027d26c61271563bf32d9);
+            
+        
+
+        circle_marker_6454089a427f0ddc5d524caff354cffa.bindPopup(popup_1581a4cfc3892ad8d5c9889d76c735dd)
+        ;
+
+        
+    
+    
+            circle_marker_6454089a427f0ddc5d524caff354cffa.bindTooltip(
+                `<div>
+                     10. ตลาดน้ำดำเนินสะดวก (ราชบุรี)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_75ee8f42dea20ba4e902260262466476 = L.marker(
+                [13.5199, 99.9566],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_5863476a304849e0ba311207357039df = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e10\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_75ee8f42dea20ba4e902260262466476.setIcon(div_icon_5863476a304849e0ba311207357039df);
+            
+    
+            var circle_marker_4c7a7c02447317568a0a24882b2b6b05 = L.circleMarker(
+                [13.5905, 99.7346],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_41d7e2a03da8ae43c9ead79d6f73c934 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_05b1ae320b53acd71483257325eac860 = $(`<div id="html_05b1ae320b53acd71483257325eac860" style="width: 100.0%; height: 100.0%;"><b>11. อุทยานหินเขางู (ราชบุรี)</b><br>สถานที่เที่ยว<br>คะแนน: 8 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 1.5 ชม. | เปิด: 8.0-18.0 น.</div>`)[0];
+                popup_41d7e2a03da8ae43c9ead79d6f73c934.setContent(html_05b1ae320b53acd71483257325eac860);
+            
+        
+
+        circle_marker_4c7a7c02447317568a0a24882b2b6b05.bindPopup(popup_41d7e2a03da8ae43c9ead79d6f73c934)
+        ;
+
+        
+    
+    
+            circle_marker_4c7a7c02447317568a0a24882b2b6b05.bindTooltip(
+                `<div>
+                     11. อุทยานหินเขางู (ราชบุรี)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_86dd206f83d1754be7260e0bef21d306 = L.marker(
+                [13.5905, 99.7346],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_87730557896d2342f497a94b70cd2297 = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e11\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_86dd206f83d1754be7260e0bef21d306.setIcon(div_icon_87730557896d2342f497a94b70cd2297);
+            
+    
+            var circle_marker_6064e64c60afd7e6ac614b617e7fbe7b = L.circleMarker(
+                [13.5333, 99.8167],
+                {"bubblingMouseEvents": true, "color": "black", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "red", "fillOpacity": 0.9, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12, "stroke": true, "weight": 2}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+        var popup_14b466d214a51c552afafc529e56dfe2 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_dda7531c7299f2496aab4f49e536cbf5 = $(`<div id="html_dda7531c7299f2496aab4f49e536cbf5" style="width: 100.0%; height: 100.0%;"><b>12. เถ้าฮงไถ่ (ราชบุรี)</b><br>สถานที่เที่ยว<br>คะแนน: 7 | ค่าใช้จ่าย: 0 บาท<br>เวลาเยี่ยม: 1.0 ชม. | เปิด: 8.0-17.0 น.</div>`)[0];
+                popup_14b466d214a51c552afafc529e56dfe2.setContent(html_dda7531c7299f2496aab4f49e536cbf5);
+            
+        
+
+        circle_marker_6064e64c60afd7e6ac614b617e7fbe7b.bindPopup(popup_14b466d214a51c552afafc529e56dfe2)
+        ;
+
+        
+    
+    
+            circle_marker_6064e64c60afd7e6ac614b617e7fbe7b.bindTooltip(
+                `<div>
+                     12. เถ้าฮงไถ่ (ราชบุรี)
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_6edc822a6fdc5f37c2c5e776f0c701bb = L.marker(
+                [13.5333, 99.8167],
+                {
+}
+            ).addTo(map_6e78b83ba401e2807191ee52eade7881);
+        
+    
+            var div_icon_cdf210c392fdcfed9bea33812021372e = L.divIcon({
+  "html": "\u003cdiv style=\"font-size:11px;font-weight:bold;color:white;text-align:center;margin-top:8px;\"\u003e12\u003c/div\u003e",
+  "className": "empty",
+});
+        
+    
+                marker_6edc822a6fdc5f37c2c5e776f0c701bb.setIcon(div_icon_cdf210c392fdcfed9bea33812021372e);
+            
+</script>
+</html>
