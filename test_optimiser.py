@@ -1,12 +1,13 @@
 import streamlit as st
-from optimiser import solve_itinerary
+from optimiser import solve_itinerary, FC, Pfuel
 from export_matrices import generate_styled_matrices_excel
 from visualization import plot_route_map_static
 
 st.set_page_config(page_title="ระบบจัดเส้นทาง", layout="wide")
 st.title("🚗 ระบบจัดเส้นทางท่องเที่ยวอัจฉริยะ")
+BUDGET = 3000   # งบรวมทั้งทริป (บาท) ใช้ทั้งส่งเข้าโมเดลและแสดงผล
 
-# ============================================================
+#  ============================================================
 # ชุดข้อมูลทดสอบ 2 ชุด
 #   - "bkk"    : กรุงเทพฯ  (ใช้กับทริปวันเดียว)
 #   - "phuket" : ภูเก็ต    (ใช้กับทริปหลายวัน / ต่างจังหวัด)
@@ -34,7 +35,7 @@ DATASETS = {
         "open":  [0.0, 0.0, 0.0, 5.0, 0.0, 8.0, 8.5, 7.5, 9.0, 10.0, 10.0, 5.0],
         "close": [24.0, 24.0, 24.0, 21.0, 24.0, 18.5, 15.5, 19.0, 18.0, 22.0, 22.0, 21.0],
     },
-    "phuket": {
+"phuket": {
         "label": "ภูเก็ต",
         "names": [
             "โรงแรมในตัวเมืองภูเก็ต", "รีสอร์ทหาดป่าตอง", "รีสอร์ทหาดราไวย์",
@@ -50,7 +51,7 @@ DATASETS = {
         ],
         "score": [0, 0, 0, 10, 8, 8, 10, 9, 9, 7, 7, 6],
         "visit": [0.0, 0.0, 0.0, 1.0, 2.0, 1.0, 1.5, 1.0, 2.0, 2.0, 2.0, 2.0],
-        "cost":  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "cost":  [0, 0, 0, 0, 200, 0, 0, 0, 200, 100, 100, 40],  # เพิ่มค่ากิจกรรม/ค่าเตียงผ้าใบ/ค่าเข้าชมในภูเก็ต
         "open":  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 7.0, 9.0, 0.0, 0.0, 0.0],
         "close": [24.0, 24.0, 24.0, 24.0, 24.0, 24.0, 19.0, 17.0, 21.0, 24.0, 24.0, 24.0],
     },
@@ -126,7 +127,24 @@ if st.button("ประมวลผลเส้นทาง"):
             st.warning("โมเดลไม่พบคำตอบที่เป็นไปได้ (infeasible) ดูรายละเอียดใน terminal")
         else:
             st.success(f"✅ ประมวลผลสำเร็จ! ระยะทางรวมทั้งหมด: {plan['total_distance']} กม.")
+# ---------------- สรุปงบประมาณ ----------------
+        day_costs = plan.get("daily_costs", []) if plan["daily_routes"] else []
+        if day_costs:
+            fuel_total = plan["fuel_cost"]
+            entry_total = plan["entry_cost"]
+            used = plan["total_cost"]
+            b1, b2, b3, b4, b5 = st.columns(5)
+            b1.metric("งบประมาณที่ตั้งไว้", f"{BUDGET:,.0f} บาท")
+            b2.metric("ใช้ไปทั้งหมด", f"{used:,.0f} บาท")
+            b3.metric("คงเหลือ", f"{BUDGET - used:,.0f} บาท")
+            b4.metric("ค่าน้ำมัน", f"{fuel_total:,.0f} บาท")
+            b5.metric("ค่าเข้าชม", f"{entry_total:,.0f} บาท")
+            if used > BUDGET + 1e-6:
+                st.warning(f"ค่าใช้จ่ายเกินงบ {used - BUDGET:,.0f} บาท")
+            st.caption(f"ค่าน้ำมันคิดจากอัตรา {FC} กม./ลิตร ราคา {Pfuel} บาท/ลิตร "
+                       "(ไม่รวมค่าทางด่วนและค่าจอดรถ)")
 
+            
         col1, col2 = st.columns([1.2, 1])
 
         with col1:
@@ -140,7 +158,12 @@ if st.button("ประมวลผลเส้นทาง"):
         with col2:
             st.subheader("📋 รายละเอียดแผนการเดินทาง")
             for k, route in enumerate(plan["daily_routes"]):
-                with st.expander(f"📌 วันที่ {k+1}", expanded=True):
+                cost_txt = ""
+                if k < len(day_costs):
+                    c = day_costs[k]
+                    cost_txt = (f" — น้ำมัน {c['fuel']:,.0f} + เข้าชม {c['entry']:,.0f}"
+                                f" = {c['total']:,.0f} บาท")
+                with st.expander(f"📌 วันที่ {k+1}{cost_txt}", expanded=True):
                     for place in route:
                         if isinstance(place, dict):
                             st.markdown(f"- **{place['name']}**")

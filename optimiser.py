@@ -198,6 +198,16 @@ def solve_itinerary(
         else:
             daily_route = ["No route available"]
         route_plan.append(daily_route)
+    # --- สรุปค่าใช้จ่ายรายวัน (สูตรเดียวกับสมการงบประมาณ (21)) ---
+    daily_costs = []
+    for route in results["daily_routes"]:
+        fuel = sum(distance_matrix[i][j] / FC * Pfuel for (i, j) in route)
+        visited_nodes = ([route[0][0]] + [j for (_, j) in route]) if route else []
+        entry = sum(cleaned_places[n]["cost"] for n in visited_nodes
+                    if not cleaned_places[n]["is_hotel"])
+        daily_costs.append({"fuel": fuel, "entry": entry, "total": fuel + entry})
+    fuel_cost = sum(c["fuel"] for c in daily_costs)
+    entry_cost = sum(c["entry"] for c in daily_costs)
 
     itineraries.append({
         "title": "Optimized Route",
@@ -209,6 +219,11 @@ def solve_itinerary(
         "cleaned_places": cleaned_places,
         "distance_matrix": distance_matrix,
         "time_matrix": time_matrix,
+        "daily_costs": daily_costs,                    # [{fuel, entry, total}, ...] ต่อวัน
+        "fuel_cost": round(fuel_cost, 2),              # ค่าน้ำมันรวม (บาท)
+        "entry_cost": round(entry_cost, 2),            # ค่าเข้าชมรวม (บาท)
+        "total_cost": round(fuel_cost + entry_cost, 2),
+        "budget": budget,
     })
 
     print(itineraries)
@@ -458,6 +473,8 @@ def run_optimize(data):
 
         results["objective_value"] = model.objective_value
         total_dist = 0
+        total_fuel = 0.0
+        total_entry = 0.0
 
         print("\n∘₊✧─────✧₊∘ ผลลัพธ์ของโปรแกรมวางแผนเส้นทาง ∘₊✧─────✧₊∘\n")
         print(f"objective value: {model.objective_value:.2f}\n")
@@ -528,7 +545,14 @@ def run_optimize(data):
             # แสดงเวลาในแต่ละวัน
             print(f"  Travel time: {total_travel_time:.1f} hr, Visit time: {total_visit_time:.1f} hr, Total time: {total_time_spent:.1f} hr")
             # แสดงระยะทางในแต่ละวัน
-            print(f"  ระยะทางรวมวันที่ {k+1}: {day_dist:.2f} km\n")
+            print(f"  ระยะทางรวมวันที่ {k+1}: {day_dist:.2f} km")
+            # แสดงค่าใช้จ่ายในแต่ละวัน (ใช้ c_travel / c_visit ชุดเดียวกับสมการงบประมาณ (21))
+            day_fuel = sum(c_travel[i][j] * x[i][j][k].x for i in N for j in N
+                           if i != j and x[i][j][k].x is not None)
+            day_entry = sum(c_visit[i] * y[i][k].x for i in A if y[i][k].x is not None)
+            total_fuel += day_fuel
+            total_entry += day_entry
+            print(f"  ค่าใช้จ่ายวันที่ {k+1}: ค่าน้ำมัน {day_fuel:,.2f} + ค่าเข้าชม {day_entry:,.2f} = {day_fuel + day_entry:,.2f} บาท\n")
 
             results["daily_travel_time"].append(total_travel_time)
             results["daily_visit_time"].append(total_visit_time)
@@ -537,13 +561,17 @@ def run_optimize(data):
 
         results["total_distance"] = total_dist
         print(f"ระยะทางรวมทั้งหมด: {total_dist:.2f} km\n")
+        used = total_fuel + total_entry
+        print(f"ค่าน้ำมันรวม: {total_fuel:,.2f} บาท")
+        print(f"ค่าเข้าชมรวม: {total_entry:,.2f} บาท")
+        print(f"ค่าใช้จ่ายรวม: {used:,.2f} บาท (งบ {B:,.0f} บาท คงเหลือ {B - used:,.2f} บาท)\n")
 
     else:
         print("\nNo feasible solution found or solve failed\n")
 
     return results
 
-"""
+
 # --- Sample input for testing solve_itinerary() ---
 
 potential_hotels = [
@@ -584,4 +612,4 @@ itineraries = solve_itinerary(
 print("\n=== TEST RESULT ===")
 for itinerary in itineraries:
     print(itinerary)
-"""
+
