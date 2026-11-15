@@ -3,7 +3,11 @@ import requests
 from mip import Model, xsum, OptimizationStatus, maximize, INTEGER, BINARY, CONTINUOUS
 
 FC = 15        # กม./ลิตร
-Pfuel = 40     # บาท/ลิตร
+Pfuel = 40.84     # บาท/ลิตร
+
+def fmt_time(h):
+    total_min = int(round(h * 60))
+    return f"{(total_min // 60) % 24:02d}:{total_min % 60:02d}"
 
 def solve_itinerary(
     potential_hotels: list[dict],
@@ -14,7 +18,6 @@ def solve_itinerary(
     max_daily_hours: int,
     is_daily_limit_flexible: bool,
     budget: int,
-    objective_weights: dict
     ) -> list[dict]:
 
     """
@@ -145,10 +148,10 @@ def solve_itinerary(
         "c_visit": [p["cost"] for p in cleaned_places],
         "E": [p["E"] for p in cleaned_places],
         "L": [p["L"] for p in cleaned_places],
-        "day_start": 6.0,   # หรือรับจากผู้ใช้
+        "day_start": 8.0,   # หรือรับจากผู้ใช้
         "flexible": is_daily_limit_flexible,  
-        "start_idx":start_idx,    # ✅ เพิ่ม
-        "end_idx":end_idx,        # ✅ เพิ่ม
+        "start_idx":start_idx,    # เพิ่ม
+        "end_idx":end_idx,        # เพิ่ม
 
 
     }
@@ -224,6 +227,7 @@ def solve_itinerary(
         "entry_cost": round(entry_cost, 2),            # ค่าเข้าชมรวม (บาท)
         "total_cost": round(fuel_cost + entry_cost, 2),
         "budget": budget,
+        "daily_schedule": results["daily_arrival"],   # [[(ชื่อ, ถึง, ออก), ...] ต่อวัน]
     })
 
     print(itineraries)
@@ -331,15 +335,15 @@ def run_optimize(data):
 
 # ==================== (1) Objective ====================
     # โค้ดเดิม: 
-    # model.objective = maximize(xsum(s[i] * y[i][k] for i in A_score for k in K))
+    model.objective = maximize(xsum(s[i] * y[i][k] for i in A_score for k in K))
     
-    # โค้ดที่แก้ไข: เน้นคะแนนเป็นหลัก (คูณ 1000) และลบด้วยระยะทางเดินทางเพื่อบังคับให้เลือกทางที่สั้นที่สุด
-    W_score = 1.0  
-    W_distance =0.1
-    model.objective = maximize(
-        (W_score * xsum(s[i] * y[i][k] for i in A_score for k in K)) - 
-        (W_distance * xsum(d[i][j] * x[i][j][k] for k in K for i in N for j in N if i != j))
-    )
+    # โค้ดที่แก้ไข: เน้นคะแนนเป็นหลัก  และลบด้วยระยะทางเดินทางเพื่อบังคับให้เลือกทางที่สั้นที่สุด
+    #W_score = 1.0  
+    #W_distance =0
+    #model.objective = maximize(
+    #    (W_score * xsum(s[i] * y[i][k] for i in A_score for k in K)) - 
+    #    (W_distance * xsum(d[i][j] * x[i][j][k] for k in K for i in N for j in N if i != j))
+    #)
     # ==================== Constraints ====================
     # (2) แต่ละสถานที่เที่ยวถูกเยี่ยมได้ไม่เกิน 1 ครั้งตลอดทริป
     for i in A:
@@ -358,14 +362,14 @@ def run_optimize(data):
                 model += xsum(x[j][i][k] for j in N if j != i) == y[i][k]
 
     # (5) วันแรกออกจากจุดเริ่มต้น s 1 เส้นทาง
-    model += xsum(x[S][j][first_day] for j in N if j != S) == 1
+    model += xsum(x[S][j][first_day] for j in A if j != S) == 1
     if S in A:   # (5.1) s เป็นสถานที่เที่ยว: ต้องแวะ, ถึงตอนเริ่มวัน, ลำดับ 0
         model += y[S][first_day] == 1
         model += a[S][first_day] == day_start
         model += u[S][first_day] == 0
 
     # (6) วันสุดท้ายเข้าสู่จุดสิ้นสุด f 1 เส้นทาง
-    model += xsum(x[i][F][last_day] for i in N if i != F) == 1
+    model += xsum(x[i][F][last_day] for i in A if i != F) == 1
     if F in A:   # (6.1) f เป็นสถานที่เที่ยว: ต้องแวะ
         model += y[F][last_day] == 1
 
@@ -430,6 +434,17 @@ def run_optimize(data):
             for j in A:
                 if i != j:
                     model += a[j][k] >= day_start + t[i][j] - BIG_M * (1 - x[i][j][k])
+    # (11b) เวลาตั้งแต่ออกจนจบวัน (รวมเวลารอ) ไม่เกิน T_max
+    if not flexible:
+        for k in K:
+            for i in A:
+                # วันที่จบที่ที่พัก: a_i + v_i + t_ih - day_start <= T_max
+                for h in H:
+                    model += (a[i][k] + v[i] + t[i][h] - day_start
+                              <= T_max + BIG_M * (1 - x[i][h][k]))
+        # วันสุดท้ายที่จบที่สถานที่เที่ยว F (ไม่มีขากลับที่พัก)
+        if F in A:
+            model += a[F][last_day] + v[F] - day_start <= T_max
 
     # (16), (17) x, y เป็นไบนารี -> กำหนดตอนสร้างตัวแปรแล้ว
 
@@ -519,6 +534,7 @@ def run_optimize(data):
                 results["daily_visit_time"].append(0)
                 results["daily_total_time_spent"].append(0)
                 results["daily_distance"].append(0)
+                results["daily_arrival"].append([])
                 continue
 
             current = start_point        # ✅ ใช้ start_point แทน start_hotel
@@ -539,6 +555,33 @@ def run_optimize(data):
                     break
 
             results["daily_routes"].append(route)
+
+            # ---- คำนวณเวลาถึง/ออกของแต่ละสถานที่ ----
+            schedule = []   # (ชื่อ, เวลาถึง, เวลาออก)
+            clock = day_start
+            for idx, (i, j) in enumerate(route):
+                if idx == 0:
+                    if i in H:                      # เริ่มจากที่พัก: ออกตอน day_start
+                        schedule.append((all_places_name[i], None, clock))
+                    else:                           # S เป็นสถานที่เที่ยว: ถึงตอน day_start
+                        leave = clock + v[i]
+                        schedule.append((all_places_name[i], clock, leave))
+                        clock = leave
+                arrive = clock + t[i][j]
+                if j in H:                          # กลับถึงที่พัก
+                    schedule.append((all_places_name[j], arrive, None))
+                    clock = arrive
+                else:
+                    arrive = max(arrive, E[j])      # ถึงก่อนเปิด -> รอ
+                    clock = arrive + v[j]
+                    schedule.append((all_places_name[j], arrive, clock))
+
+            print(f"  ตารางเวลาวันที่ {k+1}:")
+            for name, arr, dep in schedule:
+                arr_s = fmt_time(arr) if arr is not None else "-"
+                dep_s = fmt_time(dep) if dep is not None else "-"
+                print(f"    {name}: ถึง {arr_s} | ออก {dep_s}")
+            results["daily_arrival"].append(schedule)
 
             for i, j in route:
                 print(f"  From {all_places_name[i]} to {all_places_name[j]}")
@@ -590,10 +633,7 @@ trip_duration_days = 1
 budget = 3000
 max_daily_hours = 5
 is_daily_limit_flexible = True
-objective_weights = {
-    "distance_weight": 0.7,
-    "time_balance_weight": 0.3
-}
+
 
 # เรียกฟังก์ชันทดสอบ
 itineraries = solve_itinerary(
@@ -604,7 +644,6 @@ itineraries = solve_itinerary(
     trip_duration_days=trip_duration_days,
     max_daily_hours=max_daily_hours,
     is_daily_limit_flexible=is_daily_limit_flexible,
-    objective_weights=objective_weights,
     budget=budget
 )
 
@@ -612,4 +651,3 @@ itineraries = solve_itinerary(
 print("\n=== TEST RESULT ===")
 for itinerary in itineraries:
     print(itinerary)
-
