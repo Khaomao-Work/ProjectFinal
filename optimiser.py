@@ -18,6 +18,7 @@ def solve_itinerary(
     max_daily_hours: int,
     is_daily_limit_flexible: bool,
     budget: int,
+    time_limit: int = 120,      # เวลาคำนวณสูงสุด (วินาที) ถ้าหมดเวลาจะใช้คำตอบที่ดีที่สุดที่หาได้
     ) -> list[dict]:
 
     """
@@ -148,8 +149,9 @@ def solve_itinerary(
         "c_visit": [p["cost"] for p in cleaned_places],
         "E": [p["E"] for p in cleaned_places],
         "L": [p["L"] for p in cleaned_places],
-        "day_start": 8.0,   # หรือรับจากผู้ใช้
-        "flexible": is_daily_limit_flexible,  
+        "day_start": 9.0,   # หรือรับจากผู้ใช้
+        "flexible": is_daily_limit_flexible,
+        "time_limit": time_limit,
         "start_idx":start_idx,    # เพิ่ม
         "end_idx":end_idx,        # เพิ่ม
 
@@ -303,13 +305,13 @@ def run_optimize(data):
     flexible = data['flexible']
     B = data['budget']
     c_visit = data['c_visit']
-    day_start = data.get('day_start', 6.0)
+    day_start = data.get('day_start', 9.0)
     n = len(all_places_name)
     N = set(range(n))
     K = set(range(day))
-    first_day = 0          # ✅ เพิ่ม (ใช้ในสมการ (5)(6)(7)(8) แต่หายไป)
-    last_day = day - 1     # ✅ เพิ่ม (ใช้ในสมการ (3)(4)(6)(8) แต่หายไป)
-    v = visiting_time      # ✅ เพิ่ม (สมการ (11) ใช้ v[j] แต่ประกาศชื่อ visiting_time)
+    first_day = 0          
+    last_day = day - 1    
+    v = visiting_time      
     BIG_M = 100
 
     # (22) ค่าน้ำมัน c_fuel_ij = (d_ij / FC) * Pfuel
@@ -362,14 +364,14 @@ def run_optimize(data):
                 model += xsum(x[j][i][k] for j in N if j != i) == y[i][k]
 
     # (5) วันแรกออกจากจุดเริ่มต้น s 1 เส้นทาง
-    model += xsum(x[S][j][first_day] for j in A if j != S) == 1
+    model += xsum(x[S][j][first_day] for j in N if j != S) == 1
     if S in A:   # (5.1) s เป็นสถานที่เที่ยว: ต้องแวะ, ถึงตอนเริ่มวัน, ลำดับ 0
         model += y[S][first_day] == 1
         model += a[S][first_day] == day_start
         model += u[S][first_day] == 0
 
     # (6) วันสุดท้ายเข้าสู่จุดสิ้นสุด f 1 เส้นทาง
-    model += xsum(x[i][F][last_day] for i in A if i != F) == 1
+    model += xsum(x[i][F][last_day] for i in N if i != F) == 1
     if F in A:   # (6.1) f เป็นสถานที่เที่ยว: ต้องแวะ
         model += y[F][last_day] == 1
 
@@ -434,12 +436,14 @@ def run_optimize(data):
             for j in A:
                 if i != j:
                     model += a[j][k] >= day_start + t[i][j] - BIG_M * (1 - x[i][j][k])
-    # (11b) เวลาตั้งแต่ออกจนจบวัน (รวมเวลารอ) ไม่เกิน T_max
+
+    # (11b) เวลาตั้งแต่ออกจากที่พักจนจบวัน "รวมเวลารอสถานที่เปิด" ต้องไม่เกิน T_max
+    #       (สมการ (11) เดิมนับเฉพาะเวลาเดินทาง + เวลาเที่ยว จึงไม่นับเวลารอ)
     if not flexible:
         for k in K:
             for i in A:
-                # วันที่จบที่ที่พัก: a_i + v_i + t_ih - day_start <= T_max
                 for h in H:
+                    # วันที่จบที่ที่พัก h: a_ik + v_i + t_ih - day_start <= T_max
                     model += (a[i][k] + v[i] + t[i][h] - day_start
                               <= T_max + BIG_M * (1 - x[i][h][k]))
         # วันสุดท้ายที่จบที่สถานที่เที่ยว F (ไม่มีขากลับที่พัก)
@@ -483,7 +487,13 @@ def run_optimize(data):
         "penalty_value": None
     }
 
-    status = model.optimize()
+    # ตั้งเวลาจำกัด + ยอมรับช่องว่างจากค่าที่ดีที่สุด 2% เพื่อไม่ให้รันค้างนาน
+    model.max_mip_gap = 0.02
+    model.verbose = 0            # แสดงความคืบหน้าของ solver ใน terminal (ตั้งเป็น 0 ถ้าไม่ต้องการ)
+    status = model.optimize(max_seconds=data.get("time_limit", 120))
+    print(f"Solver status: {status}")
+    if status == model.status.FEASIBLE:
+        print(f"หมดเวลา {data.get('time_limit', 120)} วินาที: ใช้คำตอบที่ดีที่สุดที่หาได้ (อาจไม่ใช่คำตอบที่ดีที่สุดจริง)")
     if status == model.status.OPTIMAL or status == model.status.FEASIBLE:
 
         results["objective_value"] = model.objective_value
@@ -586,7 +596,8 @@ def run_optimize(data):
             for i, j in route:
                 print(f"  From {all_places_name[i]} to {all_places_name[j]}")
             # แสดงเวลาในแต่ละวัน
-            print(f"  Travel time: {total_travel_time:.1f} hr, Visit time: {total_visit_time:.1f} hr, Total time: {total_time_spent:.1f} hr")
+            print(f"  Travel time: {total_travel_time*60:.0f} min, Visit time: {total_visit_time*60:.0f} min, "
+                  f"Total time: {total_time_spent*60:.0f} min")
             # แสดงระยะทางในแต่ละวัน
             print(f"  ระยะทางรวมวันที่ {k+1}: {day_dist:.2f} km")
             # แสดงค่าใช้จ่ายในแต่ละวัน (ใช้ c_travel / c_visit ชุดเดียวกับสมการงบประมาณ (21))

@@ -152,7 +152,7 @@ CASES = {
         "data": "bkk", "start": 0, "end": 0, "days": 1,
     },
     "2) เที่ยววันเดียว: เริ่ม-จบที่สถานที่ท่องเที่ยว — กรุงเทพฯ": {
-        "data": "bkk", "start": 4, "end": 9, "days": 1,      # สวนลุมพินี -> สยามพารากอน
+        "data": "bkk", "start": 3, "end": 9, "days": 1,      # สวนลุมพินี -> สยามพารากอน
     },
     "3) เที่ยวหลายวัน: เริ่ม-จบที่ที่พัก — ภูเก็ต": {
         "data": "phuket", "start": 0, "end": 2, "days": 3,   # ในเมืองภูเก็ต -> ราไวย์
@@ -194,7 +194,7 @@ if st.button("ประมวลผลเส้นทาง"):
             start_point_name=start_point,
             end_point_name=end_point,
             trip_duration_days=trip_days,
-            max_daily_hours=12,
+            max_daily_hours=8,
             is_daily_limit_flexible=False,
             budget=BUDGET,
         )
